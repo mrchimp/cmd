@@ -26,18 +26,19 @@ Run some javascript.
 Options
 -------
 
-=== selector
+### selector
 
 *string* **Required.** Selector for div to use as terminal.
 
-=== style_id
+### style_id
 
 *string* Id for stylesheet `<link>` element. The element will be created automatically.
 
-=== external_processor
+### external_processor
 
 *function* See below.
 
+@todo: finish this
 
 External Processor
 ------------------
