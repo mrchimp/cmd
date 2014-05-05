@@ -7,6 +7,7 @@ Copyright 2014 Jacob Gully
 
 MIT License
 
+[Demo](http://deviouschimp.co.uk/misc/cmd)
 
 Usage
 -----
