@@ -1,0 +1,106 @@
+
+.cmd-interface {
+  background-color:   @background-color;
+  color:              @text-color;
+  cursor:             text;
+  font-size:          @font-size-default;
+  font-family:        @font-default;
+  font-weight:        300;
+  line-height:        133%;
+  overflow:           auto;
+
+  @media (max-screen-width: 600px) {
+    font-size: 10px;
+    line-height: 140%;
+  }
+
+  & *,
+  & *:before,
+  & *:after {
+    margin:             0;
+    padding:            0;
+    -moz-box-sizing:    border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing:         border-box;
+  }
+
+  &::selection,
+  &::-moz-selection,
+  &::-webkit-selection {
+    background-color: @text-color;
+    color: @background-color;
+  }
+
+  .cmd-container {
+    background-color:    transparent;
+    padding:             10px 4px 4px 4px;
+    margin:              0;
+    -webkit-transform:   translate3d(0, 0, 0);
+    -webkit-perspective: 1000;
+    width:               100%;
+  }
+
+  .cmd-in,
+  .pass-in {
+    background-color: transparent;
+    border:           0;
+    color:            @text-color;
+    font-family:      @font-default;
+    font-size:        @font-size-default;
+    outline:          none;
+    width:            80%;
+  }
+
+  .pass-in {
+    display:none;
+  }
+
+  .cmd-out {
+    margin:  0;
+    padding: 0;
+  }
+
+  .autofill {
+    cursor: pointer;
+  }
+
+  table {
+    padding: 0;
+    margin: 0;
+    display: inline-table;
+  }
+
+  td {
+    vertical-align: text-top;
+    padding: 0 3px 0 0;
+    margin: 0;
+  }
+
+  th {
+    font-style: italic;
+    padding: 0 3px 0 0;
+    margin: 0;
+    text-align: left;
+  }
+
+  ul{
+    margin: 0;
+    padding-left: 20px;
+    display: inline-block;
+  }
+
+  dl {
+    display: inline-block;
+    margin: 0;
+  }
+
+  dd {
+    margin-left: 18px; 
+    color: @text-grey;
+    display: inline-block;
+  }
+
+  dt:before {
+    content: "\2022 \0020";
+  }
+}
