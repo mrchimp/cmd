@@ -197,7 +197,6 @@ var Cmd = (function ($) {
         file_upload_url:    'ajax/uploadfile.php',
         filedrop_enabled:   false,
         history_id:         'cmd_history',
-        invalid_response:   'Invalid response.',
         light_css:          'cmd_light.min.css',
         selector:           '#cmd',
         style:              'dark',
@@ -517,7 +516,10 @@ var Cmd = (function ($) {
           switch (typeof result) {
             // If undefined, external handler should 
             // call handleResponse when done
-            case 'undefined':
+            case 'boolean':
+              if (!result) {
+                displayOutput(input_str, options.unknown_cmd);
+              }
               break;
             // If we get a response object, deal with it directly
             case 'object':
@@ -528,13 +530,8 @@ var Cmd = (function ($) {
             case 'string':
               displayOutput(input_str, result);
               break;
-            case 'boolean':
-              if (result === false) {
-                break;
-              }
-              // No break
             default:
-              displayOutput(input_str, options.invalid_response);
+              displayOutput(input_str, options.unknown_cmd);
           }
       }
     }
