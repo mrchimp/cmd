@@ -5,7 +5,7 @@ HTML5 Command Line Terminal
 
 Cmd turns a div into a command line. It allows keyboard input, sends commands to third party scripts and stores command history. It is designed to be extendable and as suck only provides a few basic commands (clear, clearhistory, invert).
 
-Cmd is part of Chimpcom v6 [See v5 here]](http://deviouschimp.co.uk/cmd), the rest of which will become open source at some point.
+Cmd is part of Chimpcom v6 [See v5 here](http://deviouschimp.co.uk/cmd), the rest of which will become open source at some point.
 
 Copyright 2014 Jacob Gully
 
@@ -67,7 +67,7 @@ Options
 
 ### invalid_response
 
-*(string: 'Invalid response.') String to respond with when `external_processor` returns something unexpected.
+*(string: 'Invalid response.')* String to respond with when `external_processor` returns something unexpected.
 
 
 ### style
