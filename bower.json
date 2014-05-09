@@ -1,0 +1,22 @@
+{
+  "name": "cmd",
+  "version": "1.0.0",
+  "homepage": "https://github.com/mrchimp/cmd",
+  "authors": [
+    "mrchimp <chimpytk@gmail.com>"
+  ],
+  "description": "HTML5 command line terminal",
+  "main": "src/js/Cmd.js",
+  "keywords": [
+    "terminal",
+    "cmd",
+    "command-line"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*"
+  ],
+  "dependencies": {
+    "jquery": ">1.0"
+  }
+}

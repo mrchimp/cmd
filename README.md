@@ -5,7 +5,9 @@ HTML5 Command Line Terminal
 
 Cmd turns a div into a command line. It allows keyboard input, sends commands to third party scripts and stores command history. It is designed to be extendable and as suck only provides a few basic commands (clear, clearhistory, invert).
 
-Cmd is part of Chimpcom v6 [See v5 here](http://deviouschimp.co.uk/cmd), the rest of which will become open source at some point.
+Cmd is part of Chimpcom v6. [Version 5 is live](http://deviouschimp.co.uk/cmd)). 6 will be put live soon and the rest of the code will become open source at some point.
+
+Cmd relies on jQuery...for now.
 
 Copyright 2014 Jacob Gully
 
@@ -138,7 +140,7 @@ Methods
 
 ### appendOutput
 
-Params: (msg *string*) - Append `msg` to the output.
+Params: (*string* msg) - Append `msg` to the output.
 
 
 ### clearScreen
@@ -148,7 +150,7 @@ Same as calling the `clear` command. Removes all output. Clears the screen. How 
 
 ### handleResponse
 
-Params: (res *object*) - Called by `external_processor` to output a response. See above for `res` specification.
+Params: (*object* res) - Called by `external_processor` to output a response. See above for `res` specification.
 
 
 ### invert
@@ -158,9 +160,9 @@ If `style` (see options) is `'dark'`, load `light_css` and vice versa.
 
 ### setPrompt
 
-Params: (new_prompt *string*) - Change the prompt string.
+Params: (*string* new_prompt) - Change the prompt string.
 
 
 ### showInputType
 
-Params: (input_type *string*) - Changes the type of input used. `input_type` should be 'password' (masks input as asterisks), 'textarea' (for large format text) or 'normal' (single line input). (If `input_type` is not set, `'normal'` will be used).
+Params: (*string* input_type) - Changes the type of input used. `input_type` should be 'password' (masks input as asterisks), 'textarea' (for large format text) or 'normal' (single line input). (If `input_type` is not set, `'normal'` will be used).
