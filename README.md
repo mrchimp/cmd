@@ -59,7 +59,7 @@ Options
 
 ### external_processor
 
-*(function: null)* See below.
+*(function: function(){})* See below.
 
 
 ### filedrop_enabled
@@ -113,7 +113,10 @@ External Processor
 
 *function*
 
-Parameter: *string* `input` The command given by the user.
+Parameters:
+
+ * *string* `input` The command given by the user.
+ * *object* `cmd` Reference to the Cmd object.
 
 To add extra commands to Cmd, pass a callback function in the options. This function should either return a *response object* (see below) or `undefined`.
 

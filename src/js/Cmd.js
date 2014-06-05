@@ -17,7 +17,7 @@ var Cmd = (function ($) {
       options       = {
         busy_text:          'Communicating...',
         dark_css:           'cmd_dark.min.css',
-        external_processor: null,
+        external_processor: function() {},
         file_upload_url:    'ajax/uploadfile.php',
         filedrop_enabled:   false,
         history_id:         'cmd_history',
@@ -335,7 +335,7 @@ var Cmd = (function ($) {
             return false;
           }
 
-          var result = options.external_processor(input_str);
+          var result = options.external_processor(input_str, cmd);
 
           switch (typeof result) {
             // If undefined, external handler should 
@@ -504,7 +504,7 @@ var Cmd = (function ($) {
      * Make prompt and input fit on one line
      */
     function resizeInput() {
-      cmd_width = window.innerWidth - wrapper.find('.main-prompt').first().width() - 45;
+      var cmd_width = wrapper.width() - wrapper.find('.main-prompt').first().width() - 45;
 
       input.focus().css('width', cmd_width);
     }
@@ -564,7 +564,7 @@ var Cmd = (function ($) {
         .val('');
     }
 
-    return {
+    var cmd = {
       appendOutput: appendOutput,
       clearScreen: clearScreen,
       handleResponse: handleResponse,
@@ -573,5 +573,7 @@ var Cmd = (function ($) {
       setPrompt: setPrompt,
       showInputType: showInputType
     };
+
+    return cmd;
   };
 })(jQuery);
