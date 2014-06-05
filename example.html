@@ -43,7 +43,12 @@
 
           return true;
         } else if (input === 'foo') {
-          return 'Bar.';
+          return 'String style return.';
+        } else if (input === 'bar') {
+          return {
+            cmd_in: input,
+            cmd_out: 'Object style return.'
+          };
         }
       }
     });

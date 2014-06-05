@@ -132,6 +132,14 @@ var Cmd = (function ($) {
      * @param   string  cmd_out     The server output to write to screen
      */
     function displayOutput(cmd_in, cmd_out) {
+      if (typeof cmd_in !== 'string') {
+        cmd_in = 'Error: invalid cmd_in returned.';
+      }
+
+      if (typeof cmd_out !== 'string') {
+        cmd_out = 'Error: invalid cmd_out returned.';
+      }
+
       cmd_in = cmd_in.replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -347,7 +355,7 @@ var Cmd = (function ($) {
               break;
             // If we get a response object, deal with it directly
             case 'object':
-              handleResponse(input_str, result.response);
+              handleResponse(result);
               break;
             // If we have a string, output it. This shouldn't
             // really happen but it might be useful
