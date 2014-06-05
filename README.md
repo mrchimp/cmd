@@ -3,7 +3,7 @@ cmd
 
 HTML5 Command Line Terminal
 
-Cmd turns a div into a command line. It allows keyboard input, sends commands to third party scripts and stores command history. It is designed to be extendable and as suck only provides a few basic commands (clear, clearhistory, invert).
+Cmd turns a div into a command line. It allows keyboard input, sends commands to third party scripts and stores command history. It is designed to be extendable and as such only provides a few basic commands (clear, clearhistory, invert).
 
 Cmd is part of Chimpcom v6. [Version 5 is live](http://deviouschimp.co.uk/cmd). 6 will be put live soon and the rest of the code will become open source at some point.
 
@@ -15,6 +15,16 @@ MIT License
 
 [Demo](http://deviouschimp.co.uk/misc/cmd)
 
+
+
+Bower
+=====
+
+You can get Cmd on bower.
+
+    bower install cmd
+
+It's that easy.
 
 
 Usage
@@ -35,7 +45,7 @@ For more examples see `example.html`.
 
 
 Options
-=======
+-------
 
 ### selector
 
