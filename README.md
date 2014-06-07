@@ -32,7 +32,7 @@ Usage
 
 Make an empty div.
 
-    <div id="cmd">
+    <div id="cmd"></div>
 
 Run some javascript.
 
