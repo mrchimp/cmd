@@ -14,6 +14,7 @@ var Cmd = (function ($) {
       style         = 'dark',
       popup         = false,
       prompt_str    = '$ ',
+      speech_synth_support = 'speechSynthesis' in window,
       options       = {
         busy_text:          'Communicating...',
         dark_css:           'cmd_dark.min.css',
@@ -25,6 +26,7 @@ var Cmd = (function ($) {
         selector:           '#cmd',
         style:              'dark',
         style_id:           'cmd-style',
+        talk:               false,
         timeout_length:     10000,
         unknown_cmd:        'Unrecognised command'
       },
@@ -34,6 +36,8 @@ var Cmd = (function ($) {
       input,
       output,
       prompt_elem,
+      voice,
+      voices = false,
       wrapper;
 
     $.extend(options, user_config);
@@ -53,7 +57,6 @@ var Cmd = (function ($) {
     setupDOM();
 
     input.focus();
-
 
 
     // ====== Layout / IO / Alter Interface =========
@@ -108,7 +111,7 @@ var Cmd = (function ($) {
           break;
         case 'textarea':
           input = $('<textarea/>')
-            .addClass('cmd-in');
+            .addClass('cmd-in')
           break;
         default:
           input = $('<input/>')
@@ -119,7 +122,8 @@ var Cmd = (function ($) {
 
       container.children('.cmd-in').remove();
 
-      input.appendTo(container);
+      input.appendTo(container)
+        .attr('title', 'Chimpcom input');
 
       focusOnInput();
     }
@@ -150,7 +154,11 @@ var Cmd = (function ($) {
       output.append(' ');
       output.append($('<span/>').addClass('grey_text').html(cmd_in));
       output.append('<br>' + cmd_out + '<br>');
-      
+
+      if (options.talk) {
+        speakOutput(cmd_out);
+      }      
+
       cmd_stack.reset();
 
       input.val('').removeAttr('disabled');
@@ -336,6 +344,25 @@ var Cmd = (function ($) {
         case 'invert':
           invert();
           displayOutput(input_str, 'Shazam.');
+          break;
+        case 'shh':
+          if (options.talk) {
+            window.speechSynthesis.cancel();
+            options.talk = false;
+            displayOutput(input_str, 'Speech stopped. Talk mode is still enabled. Type TALK to disable talk mode.');
+            options.talk = true;
+          } else {
+            displayOutput(input_str, 'Ok.');
+          }
+          break;
+        case 'talk':
+          if (!speech_synth_support) {
+            displayOutput(input_str, 'You browser doesn\'t support speech synthesis.');
+            return false;
+          }
+
+          options.talk = !options.talk;
+          displayOutput(input_str, (options.talk ? 'Talk mode enabled.' : 'Talk mode disabled.'));
           break;
         default:
           if (typeof options.external_processor !== 'function') {
@@ -570,6 +597,23 @@ var Cmd = (function ($) {
       input
         .removeAttr('disabled')
         .val('');
+    }
+
+    /**
+     * Speak output aloud using speech synthesis API
+     * 
+     * @param {String} output Text to read
+     */
+    function speakOutput(output) {
+      var msg = new SpeechSynthesisUtterance();
+
+      msg.volume = 1; // 0 - 1
+      msg.rate   = 1; // 0.1 - 10
+      msg.pitch  = 2; // 0 - 2
+      msg.lang   = 'en-UK';
+      msg.text   = output;
+
+      window.speechSynthesis.speak(msg);
     }
 
     var cmd = {
