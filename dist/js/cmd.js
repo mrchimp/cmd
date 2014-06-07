@@ -190,7 +190,7 @@ var Cmd = (function ($) {
       style         = 'dark',
       popup         = false,
       prompt_str    = '$ ',
-      speech_synth_support = 'speechSynthesis' in window,
+      speech_synth_support = ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'),
       options       = {
         busy_text:          'Communicating...',
         dark_css:           'cmd_dark.min.css',
