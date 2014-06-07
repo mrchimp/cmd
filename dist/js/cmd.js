@@ -493,25 +493,6 @@ var Cmd = (function ($) {
         case 'clr':
           clearScreen();
           break;
-        case 'timeout':
-          var new_timeout = parseInt(cmd_array[1], 10);
-
-          if (!new_timeout) {
-            displayOutput(input_str, 'Timeout is currently ' + options.timeout_length);
-            return false;
-          }
-          
-          if (typeof new_timeout !== 'number' || isNaN(new_timeout)) {
-            displayOutput(input_str, 'That was not a number.');
-            return false;
-          }
-
-          if (new_timeout < 1000) { new_timeout = 1000; }
-
-          options.timeout_length = new_timeout;
-
-          displayOutput(input_str, 'Timeout set to ' + options.timeout_length + 'ms.');
-          break;
         case 'clearhistory':
           cmd_stack.empty();
           cmd_stack.reset();
