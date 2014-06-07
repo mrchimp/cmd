@@ -179,3 +179,28 @@ Params: (*string* new_prompt) - Change the prompt string.
 ### showInputType
 
 Params: (*string* input_type) - Changes the type of input used. `input_type` should be 'password' (masks input as asterisks), 'textarea' (for large format text) or 'normal' (single line input). (If `input_type` is not set, `'normal'` will be used).
+
+
+Default Commands
+================
+
+### clear / cls / clr
+
+Clear the screan. Same as `clear` on Unix or `cls` on Windows.
+
+### clearhistory
+
+The command history that is accessed with the up arrow is stored in the browser's local storage. `clearhistory` empties this list.
+
+### invert
+
+Toggle between light and dark styles.
+
+## talk
+
+Toggle talk mode. When talk mode is enabled, responses will be read aloud.
+
+## shh
+
+"Panic button" that silences current speech and empties the talk queue. Talk mode remains enabled.
+
