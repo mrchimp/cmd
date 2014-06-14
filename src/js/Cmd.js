@@ -5,7 +5,6 @@
  * @author   Jake Gully (chimpytk@gmail.com)
  * @license  MIT License
  */
-
 var Cmd = (function ($) {
   return function(user_config) {
     "use strict";
@@ -66,6 +65,8 @@ var Cmd = (function ($) {
      */
     function setupDOM() {
       wrapper = $(options.selector).addClass('cmd-interface');
+
+      console.log(wrapper);
 
       container = $('<div/>')
       .addClass('cmd-container')
@@ -424,7 +425,6 @@ var Cmd = (function ($) {
           return false;
         }
 
-
         if (e.ctrlKey) {
           cmd_stack.push(input_str);
           goToURL(input_str);
@@ -437,7 +437,7 @@ var Cmd = (function ($) {
           }
 
           handleInput(input_str);
-        } //} else if (keyCode === 9) { tabComplete();
+        }
       } else if (keyCode === 38) { // up arrow
         if (input_str !== "" && cmd_stack.cur === (cmd_stack.getSize() - 1)) {
           cmd_stack.push(input_str);
@@ -447,8 +447,15 @@ var Cmd = (function ($) {
       } else if (keyCode === 40) { // down arrow
         input.val(cmd_stack.next());
       } else if (keyCode === 27) { // esc
-        container.fadeToggle();
-      }
+        console.log('esc');
+
+        if (container.css('opacity') > 0.5) {
+          container.animate({'opacity': 0}, 300);
+        } else {
+          container.animate({'opacity': 1}, 300);
+        }
+        // container.fadeToggle();
+      } //} else if (keyCode === 9) { tabComplete();
     }
 
     /**
