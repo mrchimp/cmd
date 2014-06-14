@@ -196,11 +196,11 @@ The command history that is accessed with the up arrow is stored in the browser'
 
 Toggle between light and dark styles.
 
-## talk
+### talk
 
 Toggle talk mode. When talk mode is enabled, responses will be read aloud.
 
-## shh
+### shh
 
 "Panic button" that silences current speech and empties the talk queue. Talk mode remains enabled.
 
