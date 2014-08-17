@@ -447,14 +447,11 @@ var Cmd = (function ($) {
       } else if (keyCode === 40) { // down arrow
         input.val(cmd_stack.next());
       } else if (keyCode === 27) { // esc
-        console.log('esc');
-
         if (container.css('opacity') > 0.5) {
           container.animate({'opacity': 0}, 300);
         } else {
           container.animate({'opacity': 1}, 300);
         }
-        // container.fadeToggle();
       } //} else if (keyCode === 9) { tabComplete();
     }
 
