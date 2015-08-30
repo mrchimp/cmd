@@ -1,12 +1,6 @@
 
 a {
-  color: @text-color;
-
-  &::selection,
-  &::-moz-selection {
-    background-color: @text-color;
-    color: @background-color;
-  }
+  .doColor(@text-color);
 
   &:hover{
     color: darken(@text-color, 20%);
@@ -18,60 +12,32 @@ a {
   }
 }
 
-.prompt{
-  color: @prompt-color;
+.prompt {
+  .doColor(@prompt-color);
   font-weight: 300;
   text-shadow: 0 0 113px rgba(0, 255, 0, 0.4);
 }
-.prompt::selection,
-.prompt::-moz-selection {
-  background-color: @prompt-color;
-}
 
 .red_highlight {
-  color: @text-error;
+  .doColor(@text-error);
   font-weight: bold;
-
-  &::selection,
-  &::-webkit-selection,
-  &::-moz-selection {
-    background-color: @text-error;
-  }
 }
 
 
 .blue_highlight {
-  color: @text-title;
+  .doColor(@text-title);
   font-weight: bold;
-
-  &::selection,
-  &::-webkit-selection,
-  &::-moz-selection {
-    background-color: @text-title;
-  }
 }
 
 
 .green_highlight {
-  color: @text-success;
+  .doColor(@text-success);
   font-weight: 300;
-
-  &::selection,
-  &::-webkit-selection,
-  &::-moz-selection {
-    background-color: @text-success;
-  }
 }
 
 
 .grey_text {
-  color: @text-grey;
-
-  &::selection,
-  &::-webkit-selection,
-  &::-moz-selection {
-    background-color: @text-grey;
-  }
+  .doColor(@text-grey);
 }
 
 

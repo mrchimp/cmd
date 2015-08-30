@@ -9,6 +9,11 @@
   line-height:        133%;
   overflow:           auto;
 
+  &.inverted {
+    background-color: @background-color-inverted;
+    color: @text-color-inverted;
+  }
+
   @media (max-screen-width: 600px) {
     font-size: 10px;
     line-height: 140%;
@@ -29,6 +34,11 @@
   &::-webkit-selection {
     background-color: @text-color;
     color: @background-color;
+
+    &.inverted {
+      color: @background-color-inverted;
+      background-color: @text-color-inverted;
+    }
   }
 
   .cmd-container {
@@ -49,6 +59,10 @@
     font-size:        @font-size-default;
     outline:          none;
     width:            80%;
+
+    .inverted& {
+      color: @text-color-inverted;
+    }
   }
 
   .pass-in {
@@ -95,7 +109,7 @@
   }
 
   dd {
-    margin-left: 18px; 
+    margin-left: 18px;
     color: @text-grey;
     display: inline-block;
   }

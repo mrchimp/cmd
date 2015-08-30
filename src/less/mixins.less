@@ -1,0 +1,15 @@
+.doColor(@color) {
+  color: @color;
+
+  &::selection,
+  &::-webkit-selection,
+  &::-moz-selection,
+  &.inverted {
+    color: @background-color;
+    background-color: @prompt-color;
+
+    &.cmd-container.invert {
+      color: @background-color-inverted;
+    }
+  }
+}

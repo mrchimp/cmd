@@ -16,15 +16,11 @@ var Cmd = (function ($) {
       speech_synth_support = ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'),
       options       = {
         busy_text:          'Communicating...',
-        dark_css:           'cmd_dark.min.css',
         external_processor: function() {},
         file_upload_url:    'ajax/uploadfile.php',
         filedrop_enabled:   false,
         history_id:         'cmd_history',
-        light_css:          'cmd_light.min.css',
         selector:           '#cmd',
-        style:              'dark',
-        style_id:           'cmd-style',
         talk:               false,
         timeout_length:     10000,
         unknown_cmd:        'Unrecognised command'
@@ -66,8 +62,6 @@ var Cmd = (function ($) {
     function setupDOM() {
       wrapper = $(options.selector).addClass('cmd-interface');
 
-      console.log(wrapper);
-
       container = $('<div/>')
       .addClass('cmd-container')
       .appendTo(wrapper);
@@ -84,19 +78,6 @@ var Cmd = (function ($) {
       wrapper.keydown(handleKeyDown);
       wrapper.keyup(handleKeyUp);
       wrapper.keydown(handleKeyPress);
-
-      if ($('#' + options.style_id).length) {
-        $('#' + options.style_id).remove();
-      }
-
-      $('<link/>')
-        .attr({
-          id:   options.style_id,
-          rel:  'stylesheet',
-          type: 'text/css',
-          href: (options.style === 'dark' ? options.dark_css : options.light_css)
-        })
-        .appendTo($('head'));
     }
 
     /**
@@ -287,32 +268,23 @@ var Cmd = (function ($) {
      * @return {[type]} [description]
      */
     function invert() {
-      var style = $('#' + options.style_id);
-
-      if (options.style === 'dark') {
-        options.style = 'light';
-        style.attr('href', options.light_css);
-      } else {
-        options.style = 'dark';
-        style.attr('href', options.dark_css);
-      }
+      wrapper.toggleClass('inverted');
     }
 
 
-
+    
     // ====== Handlers ==============================
 
     /**
      * Do something
      */
     function handleInput(input_str) {
-      if (!input_str) {
-        return false;
-      }
-
       var cmd_array = input_str.split(' ');
 
       switch (cmd_array[0]) {
+        case '':
+          displayOutput('', '');
+          break;
         case 'clear':
         case 'cls':
         case 'clr':
@@ -452,7 +424,8 @@ var Cmd = (function ($) {
         } else {
           container.animate({'opacity': 1}, 300);
         }
-      } //} else if (keyCode === 9) { tabComplete();
+      //} else if (keyCode === 9) { tabComplete();
+      }
     }
 
     /**

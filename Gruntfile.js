@@ -25,7 +25,7 @@ module.exports = function(grunt) {
       }
     },
     less: {
-      light_dist: {
+      dist: {
         options: {
           paths: [
             'src/less'
@@ -33,18 +33,7 @@ module.exports = function(grunt) {
           cleancss: true
         },
         files: {
-          'dist/cmd_light.min.css': 'src/less/main_light.less'
-        }
-      },
-      dark_dist: {
-        options: {
-          paths: [
-            'src/less'
-          ],
-          cleancss: true
-        },
-        files: {
-          'dist/cmd_dark.min.css': 'src/less/main_dark.less'
+          'dist/css/cmd.min.css': 'src/less/main.less'
         }
       }
     },
@@ -55,8 +44,7 @@ module.exports = function(grunt) {
       less: {
         files: ['src/less/**/*.less'],
         tasks: [
-          'less:light_dist',
-          'less:dark_dist'
+          'less:dist'
         ],
         options: {
           nospawn: true
@@ -65,14 +53,14 @@ module.exports = function(grunt) {
       dist: {
         files: js_files,
         tasks: [
-          'concat:dist'
+          'concat:dist',
+          'uglify'
         ],
         options: {
           nospawn: true
         }
       }
     }
-
   });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
@@ -84,8 +72,7 @@ module.exports = function(grunt) {
   grunt.registerTask('default', [
     'concat',
     'uglify',
-    'less:light_dist',
-    'less:dark_dist'
+    'less:dist'
   ]);
 
   grunt.registerTask('watch-all', [
