@@ -17,6 +17,7 @@
 <body>
   <div id="cmd1"></div>
   <div id="cmd2"></div>
+  <button>Invert</button>
   <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
   <script type="text/javascript" src="dist/js/cmd.min.js"></script>
   <script type="text/javascript">
@@ -55,7 +56,14 @@
       }
     });
 
+    // Customise the prompt string (PS1)
     interface1.setPrompt('? ');
+
+    // Run an arbitrary command string
+    $('button').on('click', function () {
+      interface1.handleInput('invert');
+      interface2.handleInput('invert');
+    });
   </script>
 </body>
 </html>

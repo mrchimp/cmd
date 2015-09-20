@@ -581,7 +581,8 @@ var Cmd = (function ($) {
       invert: invert,
       options: options,
       setPrompt: setPrompt,
-      showInputType: showInputType
+      showInputType: showInputType,
+      handleInput: handleInput
     };
 
     return cmd;

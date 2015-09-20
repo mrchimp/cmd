@@ -1,7 +1,7 @@
 {
   "name": "mrchimp-cmd",
   "description": "Command line website",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "dependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-concat": "~0.3.0",
