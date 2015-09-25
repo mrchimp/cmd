@@ -96,6 +96,9 @@ Options
 
 *(string: 'cmd_dark.min.css')* URL to dark coloured stylesheet.
 
+### remote_cmd_list_url
+
+*(string: 'ajax/commands')* A URL that provides a JSON representation of available remote commands.
 
 ### timeout_length
 
