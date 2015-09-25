@@ -5,586 +5,650 @@
  * @author   Jake Gully (chimpytk@gmail.com)
  * @license  MIT License
  */
-var Cmd = (function ($) {
-  return function(user_config) {
-    "use strict";
 
-    var keys_array  = [9, 13, 38, 40, 27],
-      style         = 'dark',
-      popup         = false,
-      prompt_str    = '$ ',
-      speech_synth_support = ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'),
-      options       = {
-        busy_text:          'Communicating...',
-        external_processor: function() {},
-        file_upload_url:    'ajax/uploadfile.php',
-        filedrop_enabled:   false,
-        history_id:         'cmd_history',
-        selector:           '#cmd',
-        talk:               false,
-        timeout_length:     10000,
-        unknown_cmd:        'Unrecognised command'
-      },
-      cmd_stack,
-      container,
-      dropzone,
-      input,
-      output,
-      prompt_elem,
-      voice,
-      voices = false,
-      wrapper;
+(function (root, factory) {
+  if ( typeof define === 'function' && define.amd ) {
+    define(factory);
+  } else if ( typeof exports === 'object' ) {
+    module.exports = factory();
+  } else {
+    root.Cmd = factory();
+  }
+}(this, function () {
+  "use strict";
 
-    $.extend(options, user_config);
+  var Cmd = function (user_config) {
+    this.keys_array    = [9, 13, 38, 40, 27],
+    this.style         = 'dark',
+    this.popup         = false,
+    this.prompt_str    = '$ ',
+    this.speech_synth_support = ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'),
+    this.options       = {
+      busy_text:           'Communicating...',
+      external_processor:  function() {},
+      file_upload_url:     'ajax/uploadfile.php',
+      filedrop_enabled:    false,
+      history_id:          'cmd_history',
+      remote_cmd_list_url: '',
+      selector:            '#cmd',
+      talk:                false,
+      timeout_length:      10000,
+      unknown_cmd:         'Unrecognised command'
+    },
+    this.voices = false;
+    this.remote_commands = [];
+    this.all_commands = [];
+    this.local_commands = [
+      'clear',
+      'clr',
+      'cls',
+      'clearhistory',
+      'invert',
+      'shh',
+      'talk'
+    ];
+    this.autocompletion_attempted = false;
 
-    if (!$(options.selector).length) {
+    $.extend(this.options, user_config);
+
+    if (this.options.remote_cmd_list_url) {
+      $.ajax({
+        url: this.options.remote_cmd_list_url,
+        context: this,
+        dataType: 'json',
+        method: 'GET',
+        success: function (data) {
+          this.remote_commands = data;
+          this.all_commands = $.merge(this.remote_commands, this.local_commands)
+        }
+      });
+    } else {
+      this.all_commands = this.local_commands;
+    }
+
+    if (!$(this.options.selector).length) {
       throw 'Cmd err: Invalid selector.';
     }
 
-    cmd_stack = new CmdStack(options.history_id, 30);
+    this.cmd_stack = new CmdStack(this.options.history_id, 30);
 
-    if (cmd_stack.isEmpty()) {
-      cmd_stack.push('secretmagicword!');
+    if (this.cmd_stack.isEmpty()) {
+      this.cmd_stack.push('secretmagicword!');
     }
 
-    cmd_stack.reset();
-    
-    setupDOM();
+    this.cmd_stack.reset();
+    this.setupDOM();
+    this.input.focus();
+  }
 
-    input.focus();
 
+  // ====== Layout / IO / Alter Interface =========
 
-    // ====== Layout / IO / Alter Interface =========
+  /**
+   * Create DOM elements, add click & key handlers
+   */
+  Cmd.prototype.setupDOM = function() {
+    this.wrapper = $(this.options.selector).addClass('cmd-interface');
 
-    /**
-     * Create DOM elements, add click & key handlers
-     */
-    function setupDOM() {
-      wrapper = $(options.selector).addClass('cmd-interface');
+    this.container = $('<div/>')
+    .addClass('cmd-container')
+    .appendTo(this.wrapper);
 
-      container = $('<div/>')
-      .addClass('cmd-container')
-      .appendTo(wrapper);
-
-      if (options.filedrop_enabled) {
-        setupFiledrop(); // adds dropzone div
-      }
-      
-      clearScreen(); // adds output, input and prompt
-
-      $(options.selector).on('click', focusOnInput);
-      $(window).resize(resizeInput);
-
-      wrapper.keydown(handleKeyDown);
-      wrapper.keyup(handleKeyUp);
-      wrapper.keydown(handleKeyPress);
+    if (this.options.filedrop_enabled) {
+      setupFiledrop(); // adds dropzone div
     }
 
-    /**
-     * Changes the input type
-     */
-    function showInputType(input_type) {
-      switch (input_type) {
-        case 'password':
-          input = $('<input/>')
-            .attr('type', 'password')
-            .attr('maxlength', 512)
-            .addClass('cmd-in');
+    this.clearScreen(); // adds output, input and prompt
+
+    $(this.options.selector).on('click', $.proxy(this.focusOnInput, this));
+    $(window).resize($.proxy(this.resizeInput, this));
+
+    this.wrapper.keydown($.proxy(this.handleKeyDown, this));
+    this.wrapper.keyup($.proxy(this.handleKeyUp, this));
+    this.wrapper.keydown($.proxy(this.handleKeyPress, this));
+  }
+
+  /**
+   * Changes the input type
+   */
+  Cmd.prototype.showInputType = function(input_type) {
+    switch (input_type) {
+      case 'password':
+        this.input = $('<input/>')
+          .attr('type', 'password')
+          .attr('maxlength', 512)
+          .addClass('cmd-in');
+        break;
+      case 'textarea':
+        this.input = $('<textarea/>')
+          .addClass('cmd-in')
+        break;
+      default:
+        this.input = $('<input/>')
+          .attr('type', 'text')
+          .attr('maxlength', 512)
+          .addClass('cmd-in');
+    }
+
+    this.container.children('.cmd-in').remove();
+
+    this.input.appendTo(this.container)
+      .attr('title', 'Chimpcom input');
+
+    this.focusOnInput();
+  }
+
+  /**
+   * Output text one letter at a time
+   */
+  Cmd.prototype.typewriter = function (elem, str) {
+    elem = elem.first()[0];
+
+    str = elem.innerHTML + str;
+
+    var i = elem.innerHTML.length,
+      isTag,
+      text;
+
+    (function type() {
+        text = str.slice(0, ++i);
+        if (text === str) return;
+
+        elem.innerHTML = text;
+
+        var char = text.slice(-1);
+        if( char === '<' ) isTag = true;
+        if( char === '>' ) isTag = false;
+
+        if (isTag) return type();
+        setTimeout(type, 16);
+    }());
+  }
+
+  /**
+   * Takes the client's input and the server's output 
+   * and displays them appropriately.
+   * 
+   * @param   string  cmd_in      The command as entered by the user
+   * @param   string  cmd_out     The server output to write to screen
+   */
+  Cmd.prototype.displayOutput = function(cmd_in, cmd_out) {
+    if (typeof cmd_in !== 'string') {
+      cmd_in = 'Error: invalid cmd_in returned.';
+    }
+
+    if (typeof cmd_out !== 'string') {
+      cmd_out = 'Error: invalid cmd_out returned.';
+    }
+
+    cmd_in = cmd_in.replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+    if (this.output.html())  {
+      this.output.append('<br>');
+    }
+
+    this.output.append('<span class="prompt">' + this.prompt_str + '</span> ' + 
+      '<span class="grey_text">' + cmd_in + '</span><br>')
+
+    this.typewriter(this.output, cmd_out + '<br>');
+
+    if (this.options.talk) {
+      this.speakOutput(cmd_out);
+    }      
+
+    this.cmd_stack.reset();
+
+    this.input.val('').removeAttr('disabled');
+
+    this.enableInput();
+    this.focusOnInput();
+  }
+
+  /**
+   * Set the prompt string
+   * @param {string} new_prompt The new prompt string
+   */
+  Cmd.prototype.setPrompt = function(new_prompt) {
+    if (typeof new_prompt !== 'string') {
+      throw 'Cmd error: invalid prompt string.';
+    }
+
+    this.prompt_str = new_prompt;
+    this.prompt_elem.html(this.prompt_str);
+  }
+
+  /**
+   * Post-file-drop dropzone reset
+   */
+  Cmd.prototype.resetDropzone = function() {
+    dropzone.css('display', 'none');
+  }
+
+  /**
+   * Add file drop handlers
+   */
+  Cmd.prototype.setupFiledrop = function() {
+    this.dropzone = $('<div/>')
+    .addClass('dropzone')
+    .appendTo(wrapper)
+    .filedrop({
+      url: this.options.file_upload_url,
+      paramname: 'dropfile', // POST parameter name used on serverside to reference file
+      maxfiles: 10,
+      maxfilesize: 2, // MBs
+      error: function (err, file) {
+        switch (err) {
+        case 'BrowserNotSupported':
+          alert('Your browser does not support html5 drag and drop.');
           break;
-        case 'textarea':
-          input = $('<textarea/>')
-            .addClass('cmd-in')
+        case 'TooManyFiles':
+          this.displayOutput('[File Upload]', 'Too many files!');
+          this.resetDropzone();
+          break;
+        case 'FileTooLarge':
+          // FileTooLarge also has access to the file which was too large
+          // use file.name to reference the filename of the culprit file
+          this.displayOutput('[File Upload]', 'File too big!');
+          this.resetDropzone();
           break;
         default:
-          input = $('<input/>')
-            .attr('type', 'text')
-            .attr('maxlength', 512)
-            .addClass('cmd-in');
-      }
-
-      container.children('.cmd-in').remove();
-
-      input.appendTo(container)
-        .attr('title', 'Chimpcom input');
-
-      focusOnInput();
-    }
-
-    /**
-     * Takes the client's input and the server's output 
-     * and displays them appropriately.
-     * 
-     * @param   string  cmd_in      The command as entered by the user
-     * @param   string  cmd_out     The server output to write to screen
-     */
-    function displayOutput(cmd_in, cmd_out) {
-      if (typeof cmd_in !== 'string') {
-        cmd_in = 'Error: invalid cmd_in returned.';
-      }
-
-      if (typeof cmd_out !== 'string') {
-        cmd_out = 'Error: invalid cmd_out returned.';
-      }
-
-      cmd_in = cmd_in.replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-      output.append($('<span/>').addClass('prompt').html(prompt_str));
-      output.append(' ');
-      output.append($('<span/>').addClass('grey_text').html(cmd_in));
-      output.append('<br>' + cmd_out + '<br>');
-
-      if (options.talk) {
-        speakOutput(cmd_out);
-      }      
-
-      cmd_stack.reset();
-
-      input.val('').removeAttr('disabled');
-
-      enableInput();
-      focusOnInput();
-    }
-
-    /**
-     * Append a string to the terminal output
-     * @param  {string} msg The string to output
-     */
-    function appendOutput(msg) {
-      output.append(msg);
-    }
-
-    /**
-     * Set the prompt string
-     * @param {string} new_prompt The new prompt string
-     */
-    function setPrompt(new_prompt) {
-      if (typeof new_prompt !== 'string') {
-        throw 'Cmd error: invalid prompt string.';
-      }
-
-      prompt_str = new_prompt;
-      prompt_elem.html(prompt_str);
-    }
-
-    /**
-     * Post-file-drop dropzone reset
-     */
-    function resetDropzone() {
-      dropzone.css('display', 'none');
-    }
-
-    /**
-     * Add file drop handlers
-     */
-    function setupFiledrop() {
-      dropzone = $('<div/>')
-      .addClass('dropzone')
-      .appendTo(wrapper)
-      .filedrop({
-        url: options.file_upload_url,
-        paramname: 'dropfile', // POST parameter name used on serverside to reference file
-        maxfiles: 10,
-        maxfilesize: 2, // MBs
-        error: function (err, file) {
-          switch (err) {
-          case 'BrowserNotSupported':
-            alert('Your browser does not support html5 drag and drop.');
-            break;
-          case 'TooManyFiles':
-            displayOutput('[File Upload]', 'Too many files!');
-            resetDropzone();
-            break;
-          case 'FileTooLarge':
-            // FileTooLarge also has access to the file which was too large
-            // use file.name to reference the filename of the culprit file
-            displayOutput('[File Upload]', 'File too big!');
-            resetDropzone();
-            break;
-          default:
-            displayOutput('[File Upload]', 'Fail D:');
-            resetDropzone();
-            break;
-          }
-        },
-        dragOver: function () { // user dragging files over #dropzone
-          dropzone.css('display', 'block');
-        },
-        dragLeave: function () { // user dragging files out of #dropzone
-          resetDropzone();
-        },
-        docOver: function () { // user dragging files anywhere inside the browser document window
-          dropzone.css('display', 'block');
-        },
-        docLeave: function () { // user dragging files out of the browser document window
-          resetDropzone();
-        },
-        drop: function () { // user drops file
-          dropzone.append('<br>File dropped.');
-        },
-        uploadStarted: function (i, file, len) {
-          dropzone.append('<br>Upload started...');
-          // a file began uploading
-          // i = index => 0, 1, 2, 3, 4 etc
-          // file is the actual file of the index
-          // len = total files user dropped
-        },
-        uploadFinished: function (i, file, response, time) {
-          // response is the data you got back from server in JSON format.
-          if (response.error !== '') {
-            upload_error = response.error;
-          }
-          dropzone.append('<br>Upload finished! ' + response.result);
-        },
-        progressUpdated: function (i, file, progress) {
-          // this function is used for large files and updates intermittently
-          // progress is the integer value of file being uploaded percentage to completion
-          dropzone.append('<br>File uploading...');
-        },
-        speedUpdated: function (i, file, speed) { // speed in kb/s
-          dropzone.append('<br>Upload speed: ' + speed);
-        },
-        afterAll: function () {
-          // runs after all files have been uploaded or otherwise dealt with
-          if (upload_error !== '') {
-            displayOutput('[File Upload]', 'Error: ' + upload_error);
-          } else {
-            displayOutput('[File Upload]', 'Success!');
-          }
-
-          upload_error = '';
-
-          dropzone.css('display', 'none');
-          resetDropzone();
+          this.displayOutput('[File Upload]', 'Fail D:');
+          this.resetDropzone();
+          break;
         }
-      });
-    }
+      },
+      dragOver: function () { // user dragging files over #dropzone
+        this.dropzone.css('display', 'block');
+      },
+      dragLeave: function () { // user dragging files out of #dropzone
+        this.resetDropzone();
+      },
+      docOver: function () { // user dragging files anywhere inside the browser document window
+        this.dropzone.css('display', 'block');
+      },
+      docLeave: function () { // user dragging files out of the browser document window
+        this.resetDropzone();
+      },
+      drop: function () { // user drops file
+        this.dropzone.append('<br>File dropped.');
+      },
+      uploadStarted: function (i, file, len) {
+        this.dropzone.append('<br>Upload started...');
+        // a file began uploading
+        // i = index => 0, 1, 2, 3, 4 etc
+        // file is the actual file of the index
+        // len = total files user dropped
+      },
+      uploadFinished: function (i, file, response, time) {
+        // response is the data you got back from server in JSON format.
+        if (response.error !== '') {
+          upload_error = response.error;
+        }
+        this.dropzone.append('<br>Upload finished! ' + response.result);
+      },
+      progressUpdated: function (i, file, progress) {
+        // this function is used for large files and updates intermittently
+        // progress is the integer value of file being uploaded percentage to completion
+        this.dropzone.append('<br>File uploading...');
+      },
+      speedUpdated: function (i, file, speed) { // speed in kb/s
+        this.dropzone.append('<br>Upload speed: ' + speed);
+      },
+      afterAll: function () {
+        // runs after all files have been uploaded or otherwise dealt with
+        if (upload_error !== '') {
+          this.displayOutput('[File Upload]', 'Error: ' + upload_error);
+        } else {
+          this.displayOutput('[File Upload]', 'Success!');
+        }
 
-    /**
-     * [invert description]
-     * @return {[type]} [description]
-     */
-    function invert() {
-      wrapper.toggleClass('inverted');
-    }
+        upload_error = '';
 
-
-    
-    // ====== Handlers ==============================
-
-    /**
-     * Do something
-     */
-    function handleInput(input_str) {
-      var cmd_array = input_str.split(' ');
-
-      switch (cmd_array[0]) {
-        case '':
-          displayOutput('', '');
-          break;
-        case 'clear':
-        case 'cls':
-        case 'clr':
-          clearScreen();
-          break;
-        case 'clearhistory':
-          cmd_stack.empty();
-          cmd_stack.reset();
-          displayOutput(input_str,  'Command history cleared. ');
-          break;
-        case 'invert':
-          invert();
-          displayOutput(input_str, 'Shazam.');
-          break;
-        case 'shh':
-          if (options.talk) {
-            window.speechSynthesis.cancel();
-            options.talk = false;
-            displayOutput(input_str, 'Speech stopped. Talk mode is still enabled. Type TALK to disable talk mode.');
-            options.talk = true;
-          } else {
-            displayOutput(input_str, 'Ok.');
-          }
-          break;
-        case 'talk':
-          if (!speech_synth_support) {
-            displayOutput(input_str, 'You browser doesn\'t support speech synthesis.');
-            return false;
-          }
-
-          options.talk = !options.talk;
-          displayOutput(input_str, (options.talk ? 'Talk mode enabled.' : 'Talk mode disabled.'));
-          break;
-        default:
-          if (typeof options.external_processor !== 'function') {
-            displayOutput(input_str, options.unknown_cmd);
-            return false;
-          }
-
-          var result = options.external_processor(input_str, cmd);
-
-          switch (typeof result) {
-            // If undefined, external handler should 
-            // call handleResponse when done
-            case 'boolean':
-              if (!result) {
-                displayOutput(input_str, options.unknown_cmd);
-              }
-              break;
-            // If we get a response object, deal with it directly
-            case 'object':
-              handleResponse(result);
-              break;
-            // If we have a string, output it. This shouldn't
-            // really happen but it might be useful
-            case 'string':
-              displayOutput(input_str, result);
-              break;
-            default:
-              displayOutput(input_str, options.unknown_cmd);
-          }
+        this.dropzone.css('display', 'none');
+        this.resetDropzone();
       }
-    }
+    });
+  }
 
-    /**
-     * Handle JSON responses. Used as callback by external command handler
-     * @param  {object} res Chimpcom command object
-     */
-    function handleResponse(res) {
-      if (res.redirect !== undefined) {
-        document.location.href = res.redirect;
-      }
+  /**
+   * [invert description]
+   * @return {[type]} [description]
+   */
+  Cmd.prototype.invert = function() {
+    this.wrapper.toggleClass('inverted');
+  }
 
-      if (res.openWindow !== undefined) {
-        window.open(res.openWindow, '_blank', res.openWindowSpecs);
-      }
 
-      if (res.log !== undefined && res.log !== '') {
-        console.log(res.log);
-      }
+  
+  // ====== Handlers ==============================
 
-      if (res.hide_output === true) {
-        res.cmd_in = new Array(cmd_in.length).join("*");
-      }
+  /**
+   * Do something
+   */
+  Cmd.prototype.handleInput = function(input_str) {
+    var cmd_array = input_str.split(' ');
 
-      if (res.show_pass === true) {
-        showInputType('password');
-      } else {
-        showInputType();
-      }
-
-      displayOutput(res.cmd_in, res.cmd_out);
-
-      if (res.cmd_fill !== '') {
-        wrapper.children('.cmd-container').children('.cmd-in').first().val(res.cmd_fill);
-      }
-
-      activateAutofills();
-    }
-
-    /**
-     * Handle keypresses
-     */
-    function handleKeyPress(e) {
-      var keyCode = e.keyCode || e.which,
-        input_str = input.val();
-
-      if (keyCode === 13) { // enter
-        if (input.attr('disabled')) {
+    switch (cmd_array[0]) {
+      case '':
+        this.displayOutput('', '');
+        break;
+      case 'clear':
+      case 'cls':
+      case 'clr':
+        this.clearScreen();
+        break;
+      case 'clearhistory':
+        this.cmd_stack.empty();
+        this.cmd_stack.reset();
+        this.displayOutput(input_str,  'Command history cleared. ');
+        break;
+      case 'invert':
+        this.invert();
+        this.displayOutput(input_str, 'Shazam.');
+        break;
+      case 'shh':
+        if (this.options.talk) {
+          window.speechSynthesis.cancel();
+          this.options.talk = false;
+          this.displayOutput(input_str, 'Speech stopped. Talk mode is still enabled. Type TALK to disable talk mode.');
+          this.options.talk = true;
+        } else {
+          this.displayOutput(input_str, 'Ok.');
+        }
+        break;
+      case 'talk':
+        if (!this.speech_synth_support) {
+          this.displayOutput(input_str, 'You browser doesn\'t support speech synthesis.');
           return false;
         }
 
-        if (e.ctrlKey) {
-          cmd_stack.push(input_str);
-          goToURL(input_str);
-        } else {
-          disableInput();
-
-          // push command to stack if using text input, i.e. no passwords
-          if (input.get(0).type === 'text') {
-            cmd_stack.push(input_str);
-          }
-
-          handleInput(input_str);
-        }
-      } else if (keyCode === 38) { // up arrow
-        if (input_str !== "" && cmd_stack.cur === (cmd_stack.getSize() - 1)) {
-          cmd_stack.push(input_str);
+        this.options.talk = !this.options.talk;
+        this.displayOutput(input_str, (this.options.talk ? 'Talk mode enabled.' : 'Talk mode disabled.'));
+        break;
+      default:
+        if (typeof this.options.external_processor !== 'function') {
+          this.displayOutput(input_str, this.options.unknown_cmd);
+          return false;
         }
 
-        input.val(cmd_stack.prev());
-      } else if (keyCode === 40) { // down arrow
-        input.val(cmd_stack.next());
-      } else if (keyCode === 27) { // esc
-        if (container.css('opacity') > 0.5) {
-          container.animate({'opacity': 0}, 300);
-        } else {
-          container.animate({'opacity': 1}, 300);
+        var result = this.options.external_processor(input_str, this);
+
+        switch (typeof result) {
+          // If undefined, external handler should 
+          // call handleResponse when done
+          case 'boolean':
+            if (!result) {
+              this.displayOutput(input_str, this.options.unknown_cmd);
+            }
+            break;
+          // If we get a response object, deal with it directly
+          case 'object':
+            this.handleResponse(result);
+            break;
+          // If we have a string, output it. This shouldn't
+          // really happen but it might be useful
+          case 'string':
+            this.displayOutput(input_str, result);
+            break;
+          default:
+            this.displayOutput(input_str, this.options.unknown_cmd);
         }
-      //} else if (keyCode === 9) { tabComplete();
-      }
+    }
+  }
+
+  /**
+   * Handle JSON responses. Used as callback by external command handler
+   * @param  {object} res Chimpcom command object
+   */
+  Cmd.prototype.handleResponse = function(res) {
+    if (res.redirect !== undefined) {
+      document.location.href = res.redirect;
     }
 
-    /**
-     * Prevent default action of special keys
-     */
-    function handleKeyUp(e) {
-      var key = e.which;
+    if (res.openWindow !== undefined) {
+      window.open(res.openWindow, '_blank', res.openWindowSpecs);
+    }
 
-      if ($.inArray(key, keys_array) > -1) {
-        e.preventDefault();
+    if (res.log !== undefined && res.log !== '') {
+      console.log(res.log);
+    }
+
+    if (res.hide_output === true) {
+      res.cmd_in = new Array(cmd_in.length).join("*");
+    }
+
+    if (res.show_pass === true) {
+      this.showInputType('password');
+    } else {
+      this.showInputType();
+    }
+
+    displayOutput(res.cmd_in, res.cmd_out);
+
+    if (res.cmd_fill !== '') {
+      wrapper.children('.cmd-container').children('.cmd-in').first().val(res.cmd_fill);
+    }
+
+    activateAutofills();
+  }
+
+  /**
+   * Handle keypresses
+   */
+  Cmd.prototype.handleKeyPress = function(e) {
+    var keyCode = e.keyCode || e.which,
+      input_str = this.input.val(),
+      autocompletions;
+
+    if (keyCode === 13) { // enter
+      if (this.input.attr('disabled')) {
         return false;
       }
 
-      return true;
-    }
-
-    /**
-     * Prevent default action of special keys
-     */
-    function handleKeyDown(e) {
-      var key = e.which;
-
-      if ($.inArray(key, keys_array) > -1) {
-        e.preventDefault();
-
-        return false;
-      }
-      return true;
-    }
-
-    
-
-    // ====== Helpers ===============================
-    
-    /**
-     * Takes a user to a given url. Adds "http://" if necessary.
-     */
-    function goToURL(url) {
-      if (url.substr(0, 4) !== 'http' && url.substr(0, 2) !== '//') {
-        url = 'http://' + url;
-      }
-
-      if (popup) {
-        window.open(url, '_blank');
-        window.focus();
+      if (e.ctrlKey) {
+        this.cmd_stack.push(input_str);
+        this.goToURL(input_str);
       } else {
-        // break out of iframe - used by chrome plugin
-        if (top.location !== location) {
-          top.location.href = document.location.href;
+        this.disableInput();
+
+        // push command to stack if using text input, i.e. no passwords
+        if (this.input.get(0).type === 'text') {
+          this.cmd_stack.push(input_str);
         }
 
-        location.href = url;
+        this.handleInput(input_str);
+      }
+    } else if (keyCode === 38) { // up arrow
+      if (input_str !== "" && this.cmd_stack.cur === (this.cmd_stack.getSize() - 1)) {
+        this.cmd_stack.push(input_str);
+      }
+
+      this.input.val(this.cmd_stack.prev());
+    } else if (keyCode === 40) { // down arrow
+      this.input.val(this.cmd_stack.next());
+    } else if (keyCode === 27) { // esc
+      if (this.container.css('opacity') > 0.5) {
+        this.container.animate({'opacity': 0}, 300);
+      } else {
+        this.container.animate({'opacity': 1}, 300);
+      }
+    } else if (keyCode === 9) {
+      autocompletions = this.tabComplete(input_str);
+
+      if (this.autocompletion_attempted) {
+        this.displayOutput(input_str, autocompletions.join(', '));
+        this.autocompletion_attempted = false;
+        this.input.val(input_str);
+        return;
+      }
+
+      if (autocompletions.length === 0) {
+        return false;
+      } else if (autocompletions.length === 1) {
+        this.input.val(autocompletions[0]);
+      } else {
+        this.autocompletion_attempted = true;
       }
     }
+  }
 
-    /**
-     * Give focus to the command input and 
-     * scroll to the bottom of the page
-     */
-    function focusOnInput() {
-      var cmd_width;
+  /**
+   * Prevent default action of special keys
+   */
+  Cmd.prototype.handleKeyUp = function(e) {
+    var key = e.which;
 
-      $(options.selector).scrollTop($(options.selector)[0].scrollHeight);
-
-      input.focus();
+    if ($.inArray(key, this.keys_array) > -1) {
+      e.preventDefault();
+      return false;
     }
 
-    /**
-     * Make prompt and input fit on one line
-     */
-    function resizeInput() {
-      var cmd_width = wrapper.width() - wrapper.find('.main-prompt').first().width() - 45;
+    return true;
+  }
 
-      input.focus().css('width', cmd_width);
+  /**
+   * Prevent default action of special keys
+   */
+  Cmd.prototype.handleKeyDown = function(e) {
+    var key = e.which;
+
+    if ($.inArray(key, this.keys_array) > -1) {
+      e.preventDefault();
+
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Complete command names when tab is pressed
+   */
+  Cmd.prototype.tabComplete = function(str) {
+    return this.all_commands.filter(function (value) {
+      return value.startsWith(str);
+    });
+  }
+  
+
+  // ====== Helpers ===============================
+  
+  /**
+   * Takes a user to a given url. Adds "http://" if necessary.
+   */
+  Cmd.prototype.goToURL = function(url) {
+    if (url.substr(0, 4) !== 'http' && url.substr(0, 2) !== '//') {
+      url = 'http://' + url;
     }
 
-    /**
-     * Clear the screen
-     */
-    function clearScreen() {
-      container.empty();
+    if (popup) {
+      window.open(url, '_blank');
+      window.focus();
+    } else {
+      // break out of iframe - used by chrome plugin
+      if (top.location !== location) {
+        top.location.href = document.location.href;
+      }
 
-      output = $('<div/>')
-        .addClass('cmd-output')
-        .appendTo(container);
-
-      prompt_elem = $('<span/>')
-        .addClass('main-prompt')
-        .addClass('prompt')
-        .html(prompt_str)
-        .appendTo(container);
-
-      input = $('<input/>')
-        .addClass('cmd-in')
-        .attr('type', 'text')
-        .attr('maxlength', 512)
-        .appendTo(container);
-
-      showInputType();
-
-      input.val('');
+      location.href = url;
     }
+  }
 
-    /**
-     * Attach click handlers to 'autofills' - divs which, when clicked,
-     * will insert text into the input
-     */
-    function activateAutofills() {
-      wrapper.find('[data-type=autofill]').on('click', function () {
-        input.val($(this).data('autofill'));
-      });
-    }
+  /**
+   * Give focus to the command input and 
+   * scroll to the bottom of the page
+   */
+  Cmd.prototype.focusOnInput = function() {
+    var cmd_width;
 
-    /**
-     * Temporarily disable input while runnign commands
-     */
-    function disableInput() {
-      input
-        .attr('disabled', true)
-        .val(options.busy_text);
-    }
+    $(this.options.selector).scrollTop($(this.options.selector)[0].scrollHeight);
 
-    /**
-     * Reenable input after running disableInput()
-     */
-    function enableInput() {
-      input
-        .removeAttr('disabled')
-        .val('');
-    }
+    this.input.focus();
+  }
 
-    /**
-     * Speak output aloud using speech synthesis API
-     * 
-     * @param {String} output Text to read
-     */
-    function speakOutput(output) {
-      var msg = new SpeechSynthesisUtterance();
+  /**
+   * Make prompt and input fit on one line
+   */
+  Cmd.prototype.resizeInput = function() {
+    var cmd_width = this.wrapper.width() - this.wrapper.find('.main-prompt').first().width() - 45;
 
-      msg.volume = 1; // 0 - 1
-      msg.rate   = 1; // 0.1 - 10
-      msg.pitch  = 2; // 0 - 2
-      msg.lang   = 'en-UK';
-      msg.text   = output;
+    this.input.focus().css('width', cmd_width);
+  }
 
-      window.speechSynthesis.speak(msg);
-    }
+  /**
+   * Clear the screen
+   */
+  Cmd.prototype.clearScreen = function() {
+    this.container.empty();
 
-    var cmd = {
-      appendOutput: appendOutput,
-      clearScreen: clearScreen,
-      handleResponse: handleResponse,
-      invert: invert,
-      options: options,
-      setPrompt: setPrompt,
-      showInputType: showInputType,
-      handleInput: handleInput
-    };
+    this.output = $('<div/>')
+      .addClass('cmd-output')
+      .appendTo(this.container);
 
-    return cmd;
-  };
-})(jQuery);
+    this.prompt_elem = $('<span/>')
+      .addClass('main-prompt')
+      .addClass('prompt')
+      .html(this.prompt_str)
+      .appendTo(this.container);
+
+    this.input = $('<input/>')
+      .addClass('cmd-in')
+      .attr('type', 'text')
+      .attr('maxlength', 512)
+      .appendTo(this.container);
+
+    this.showInputType();
+
+    this.input.val('');
+  }
+
+  /**
+   * Attach click handlers to 'autofills' - divs which, when clicked,
+   * will insert text into the input
+   */
+  Cmd.prototype.activateAutofills = function() {
+    this.wrapper.find('[data-type=autofill]').on('click', function () {
+      this.input.val($(this).data('autofill'));
+    });
+  }
+
+  /**
+   * Temporarily disable input while runnign commands
+   */
+  Cmd.prototype.disableInput = function() {
+    this.input
+      .attr('disabled', true)
+      .val(this.options.busy_text);
+  }
+
+  /**
+   * Reenable input after running disableInput()
+   */
+  Cmd.prototype.enableInput = function() {
+    this.input
+      .removeAttr('disabled')
+      .val('');
+  }
+
+  /**
+   * Speak output aloud using speech synthesis API
+   * 
+   * @param {String} output Text to read
+   */
+  Cmd.prototype.speakOutput = function(output) {
+    var msg = new SpeechSynthesisUtterance();
+
+    msg.volume = 1; // 0 - 1
+    msg.rate   = 1; // 0.1 - 10
+    msg.pitch  = 2; // 0 - 2
+    msg.lang   = 'en-UK';
+    msg.text   = output;
+
+    window.speechSynthesis.speak(msg);
+  }
+
+  return Cmd;
+}));

@@ -1,6 +1,8 @@
 module.exports = function(grunt) {
 
   var js_files = [
+    'bower_components/typewriter/jquery.typer.js',
+    'src/js/Polyfills.js',
     'src/js/CmdStack.js',
     'src/js/Cmd.js',
   ];

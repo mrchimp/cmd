@@ -1,6 +1,6 @@
 {
   "name": "cmd",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "homepage": "https://github.com/mrchimp/cmd",
   "authors": [
     "mrchimp <chimpytk@gmail.com>"
@@ -17,6 +17,7 @@
     "**/.*"
   ],
   "dependencies": {
-    "jquery": ">1.0"
+    "jquery": ">1.0",
+    "theaterjs": "v1.4.2"
   }
 }
