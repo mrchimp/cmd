@@ -299,7 +299,6 @@ function CmdStack(id, max_size) {
     this.input.focus();
   }
 
-
   // ====== Layout / IO / Alter Interface =========
 
   /**
@@ -623,6 +622,7 @@ function CmdStack(id, max_size) {
    * @param  {object} res Chimpcom command object
    */
   Cmd.prototype.handleResponse = function(res) {
+    console.log('hadnleresponse');
     if (res.redirect !== undefined) {
       document.location.href = res.redirect;
     }
@@ -644,14 +644,14 @@ function CmdStack(id, max_size) {
     } else {
       this.showInputType();
     }
-
-    displayOutput(res.cmd_in, res.cmd_out);
+console.log('whut');
+    this.displayOutput(res.cmd_in, res.cmd_out);
 
     if (res.cmd_fill !== '') {
-      wrapper.children('.cmd-container').children('.cmd-in').first().val(res.cmd_fill);
+      this.wrapper.children('.cmd-container').children('.cmd-in').first().val(res.cmd_fill);
     }
 
-    activateAutofills();
+    this.activateAutofills();
   }
 
   /**
