@@ -31,6 +31,7 @@
       history_id:          'cmd_history',
       remote_cmd_list_url: '',
       selector:            '#cmd',
+      tabcomplete_url:     '',
       talk:                false,
       timeout_length:      10000,
       unknown_cmd:         'Unrecognised command'
@@ -404,7 +405,6 @@
    * @param  {object} res Chimpcom command object
    */
   Cmd.prototype.handleResponse = function(res) {
-    console.log('hadnleresponse');
     if (res.redirect !== undefined) {
       document.location.href = res.redirect;
     }
@@ -426,7 +426,7 @@
     } else {
       this.showInputType();
     }
-console.log('whut');
+
     this.displayOutput(res.cmd_in, res.cmd_out);
 
     if (res.cmd_fill !== '') {
@@ -444,54 +444,44 @@ console.log('whut');
       input_str = this.input.val(),
       autocompletions;
 
-    if (keyCode === 13) { // enter
-      if (this.input.attr('disabled')) {
-        return false;
-      }
+    if (keyCode === 9) { //tab
+      this.tabComplete(input_str);
+    } else {
+      console.log('resetting')
+      this.autocompletion_attempted = false;
 
-      if (e.ctrlKey) {
-        this.cmd_stack.push(input_str);
-        this.goToURL(input_str);
-      } else {
-        this.disableInput();
+      if (keyCode === 13) { // enter
+        if (this.input.attr('disabled')) {
+          return false;
+        }
 
-        // push command to stack if using text input, i.e. no passwords
-        if (this.input.get(0).type === 'text') {
+        if (e.ctrlKey) {
+          this.cmd_stack.push(input_str);
+          this.goToURL(input_str);
+        } else {
+          this.disableInput();
+
+          // push command to stack if using text input, i.e. no passwords
+          if (this.input.get(0).type === 'text') {
+            this.cmd_stack.push(input_str);
+          }
+
+          this.handleInput(input_str);
+        }
+      } else if (keyCode === 38) { // up arrow
+        if (input_str !== "" && this.cmd_stack.cur === (this.cmd_stack.getSize() - 1)) {
           this.cmd_stack.push(input_str);
         }
 
-        this.handleInput(input_str);
-      }
-    } else if (keyCode === 38) { // up arrow
-      if (input_str !== "" && this.cmd_stack.cur === (this.cmd_stack.getSize() - 1)) {
-        this.cmd_stack.push(input_str);
-      }
-
-      this.input.val(this.cmd_stack.prev());
-    } else if (keyCode === 40) { // down arrow
-      this.input.val(this.cmd_stack.next());
-    } else if (keyCode === 27) { // esc
-      if (this.container.css('opacity') > 0.5) {
-        this.container.animate({'opacity': 0}, 300);
-      } else {
-        this.container.animate({'opacity': 1}, 300);
-      }
-    } else if (keyCode === 9) {
-      autocompletions = this.tabComplete(input_str);
-
-      if (this.autocompletion_attempted) {
-        this.displayOutput(input_str, autocompletions.join(', '));
-        this.autocompletion_attempted = false;
-        this.input.val(input_str);
-        return;
-      }
-
-      if (autocompletions.length === 0) {
-        return false;
-      } else if (autocompletions.length === 1) {
-        this.input.val(autocompletions[0]);
-      } else {
-        this.autocompletion_attempted = true;
+        this.input.val(this.cmd_stack.prev());
+      } else if (keyCode === 40) { // down arrow
+        this.input.val(this.cmd_stack.next());
+      } else if (keyCode === 27) { // esc
+        if (this.container.css('opacity') > 0.5) {
+          this.container.animate({'opacity': 0}, 300);
+        } else {
+          this.container.animate({'opacity': 1}, 300);
+        }
       }
     }
   }
@@ -528,9 +518,24 @@ console.log('whut');
    * Complete command names when tab is pressed
    */
   Cmd.prototype.tabComplete = function(str) {
-    return this.all_commands.filter(function (value) {
+    var autocompletions = this.all_commands.filter(function (value) {
       return value.startsWith(str);
     });
+
+    if (this.autocompletion_attempted) {
+      this.displayOutput(str, autocompletions.join(', '));
+      this.autocompletion_attempted = false;
+      this.input.val(str);
+      return;
+    }
+
+    if (autocompletions.length === 0) {
+      return false;
+    } else if (autocompletions.length === 1) {
+      this.input.val(autocompletions[0]);
+    } else {
+      this.autocompletion_attempted = true;
+    }
   }
   
 
