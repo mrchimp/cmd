@@ -33,7 +33,8 @@
       selector:            '#cmd',
       tabcomplete_url:     '',
       talk:                false,
-      unknown_cmd:         'Unrecognised command'
+      unknown_cmd:         'Unrecognised command',
+      typewriter_time:     32
     },
     this.voices = false;
     this.remote_commands = [];
@@ -149,7 +150,7 @@
       isTag,
       text;
 
-    (function type() {
+    var type = $.proxy(function () {
         text = str.slice(0, ++i);
         if (text === str) return;
 
@@ -160,8 +161,11 @@
         if( char === '>' ) isTag = false;
 
         if (isTag) return type();
-        setTimeout(type, 16);
-    }());
+        console.log(this);
+        setTimeout(type, this.options.typewriter_time);
+    }, this);
+
+    type();
   }
 
   /**
@@ -193,7 +197,12 @@
     this.output.append('<span class="prompt">' + this.prompt_str + '</span> ' + 
       '<span class="grey_text">' + cmd_in + '</span><br>')
 
-    this.typewriter(this.output, cmd_out + '<br>');
+    if (this.options.typewriter_time > 0 && cmd_out.length < 200) {
+      this.typewriter(this.output, cmd_out + '<br>');
+    } else {
+      this.output.append(cmd_out);
+    }
+
 
     if (this.options.talk) {
       this.speakOutput(cmd_out);

@@ -5,7 +5,7 @@ HTML5 Command Line Terminal
 
 Cmd turns a div into a kind of command line. It is designed to take a string input and return a plain text or HTML response by processing the input using Javascript or by using a remote server via a JSON API. It is designed to be extended and as such only provides a few basic commands (see below).
 
-Cmd was built for [Chimpcom](http://deviouschimp.co.uk/cmd) ^([Github](https://github.com/mrchimp/chimpcom)).
+Cmd was built for [Chimpcom](http://deviouschimp.co.uk/cmd) ([Github](https://github.com/mrchimp/chimpcom)).
 
 MIT License
 
@@ -109,7 +109,17 @@ The value that `external_processor` returns defines how Cmd reacts:
 *(boolean: false)* Enable talk mode by default.
 
 
-### unknown_cmd
+### typewriter\_time
+
+*(string: 32)* Time between typewriter output keypresses.
+
+
+### typewriter\_threshold
+
+*(string: 200)* Output length longer than this will not use the typewriter effect.
+
+
+### unknown\_cmd
 
 *(string: 'Unrecognised command')* String to respond with when unable to process a command.
 

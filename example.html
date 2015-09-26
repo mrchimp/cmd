@@ -26,7 +26,8 @@
       selector: '#cmd1',
       dark_css: 'dist/cmd_dark.min.css',
       light_css: 'dist/cmd_light.min.css',
-      history_id: 'interface1'
+      history_id: 'interface1',
+      typewriter_time: 0
     });
 
     var interface2 = new Cmd({
@@ -36,6 +37,7 @@
       history_id: 'interface2',
       tabcomplete_url: 'tabcomplete.json',
       remote_cmd_list_url: 'commands.json',
+      typewriter_time: 5,
       external_processor: function(input, cmd)  {
         if (input === 'test') {
           setTimeout(function() {
@@ -48,13 +50,15 @@
           return true;
         } else if (input === 'foo') {
           return 'String style return.';
-        } else if (input === 'strong')  {
-          return 'This is a bold test. This is a <strong>bold</strong> test. This is a <em>bold</em> test.';
+        } else if (input === 'text')  {
+          return 'This is normal text. This is <em>italic</em> text. This is <em>bold</em> text.';
         } else if (input === 'bar') {
           return {
             cmd_in: input,
             cmd_out: 'Object style return.'
           };
+        } else if (input === 'long') {
+          return 'This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. '
         }
       }
     });
