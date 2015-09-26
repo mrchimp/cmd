@@ -447,8 +447,10 @@
     if (keyCode === 9) { //tab
       this.tabComplete(input_str);
     } else {
-      console.log('resetting')
       this.autocompletion_attempted = false;
+      if (this.autocomplete_ajax) {
+        this.autocomplete_ajax.abort();
+      }
 
       if (keyCode === 13) { // enter
         if (this.input.attr('disabled')) {
@@ -518,23 +520,49 @@
    * Complete command names when tab is pressed
    */
   Cmd.prototype.tabComplete = function(str) {
+    // If we have a space then offload to external processor
+    if (str.indexOf(' ') !== -1) {
+      if (this.options.tabcomplete_url) {
+        if (this.autocomplete_ajax) {
+          this.autocomplete_ajax.abort();
+        }
+
+        this.autocomplete_ajax = $.ajax({
+          url: this.options.tabcomplete_url,
+          context: this,
+          dataType: 'json',
+          data: {
+            cmd_in: str
+          },
+          success: function (data) {
+            if (typeof data === 'string') {
+              this.input.val(data);
+            }
+          }
+        });
+      }
+      this.autocompletion_attempted = false;
+      return;
+    }
+
     var autocompletions = this.all_commands.filter(function (value) {
       return value.startsWith(str);
     });
 
-    if (this.autocompletion_attempted) {
-      this.displayOutput(str, autocompletions.join(', '));
-      this.autocompletion_attempted = false;
-      this.input.val(str);
-      return;
-    }
 
     if (autocompletions.length === 0) {
       return false;
     } else if (autocompletions.length === 1) {
       this.input.val(autocompletions[0]);
     } else {
-      this.autocompletion_attempted = true;
+      if (this.autocompletion_attempted) {
+        this.displayOutput(str, autocompletions.join(', '));
+        this.autocompletion_attempted = false;
+        this.input.val(str);
+        return;
+      } else {
+        this.autocompletion_attempted = true;
+      }
     }
   }
   
