@@ -52,9 +52,9 @@ Options
 **Required.** *(string: '#cmd')* Selector for div to use as terminal.
 
 
-### style_id
+### busy_text
 
-*(string: 'cmd-style')* Id for stylesheet `<link>` element. The element will be created automatically.
+*(string: 'Communicating...')* Text to display when input is disabled during external processor requests.
 
 
 ### external_processor
@@ -77,32 +77,19 @@ Options
 *(string: 'cmd_history')* Command history is stored in Local Storage. Use different ids if using multiple terminals on a page. Or don't and they'll share history. It's up to you.
 
 
-### invalid_response
-
-*(string: 'Invalid response.')* String to respond with when `external_processor` returns something unexpected.
-
-
-### style
-
-*(string: 'dark')* Default style type. Options are 'light' and 'dark'. Loads `light_css` or `dark_css` respectively.
-
-
-### light_css
-
-*(string: 'cmd_light.min.css')* URL to light coloured stylesheet.
-
-
-### dark_css
-
-*(string: 'cmd_dark.min.css')* URL to dark coloured stylesheet.
-
 ### remote_cmd_list_url
 
-*(string: 'ajax/commands')* A URL that provides a JSON representation of available remote commands.
+*(string: '')* A URL that provides a JSON representation of available remote commands that is used for *command name* tabcomplete. This is called once at boot time.
 
-### timeout_length
 
-*(number: 10000)* Timeout time in milliseconds. This is a leftover from the old chimpcom and might be removed or re-worked. Currently the variable is just stored and possibly manipulated with the `timeout` command but is not actually used.
+### tabcomplete_url ###
+
+*(string: '')* A URL that provides parameter tabcompletion result when the input is more than one word.
+
+
+### talk
+
+*(boolean: false)* Enable talk mode by default.
 
 
 ### unknown_cmd

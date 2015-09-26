@@ -244,14 +244,13 @@ function CmdStack(id, max_size) {
     this.options       = {
       busy_text:           'Communicating...',
       external_processor:  function() {},
-      file_upload_url:     'ajax/uploadfile.php',
       filedrop_enabled:    false,
+      file_upload_url:     'ajax/uploadfile.php',
       history_id:          'cmd_history',
       remote_cmd_list_url: '',
       selector:            '#cmd',
       tabcomplete_url:     '',
       talk:                false,
-      timeout_length:      10000,
       unknown_cmd:         'Unrecognised command'
     },
     this.voices = false;
