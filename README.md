@@ -3,32 +3,32 @@ cmd
 
 HTML5 Command Line Terminal
 
-Cmd turns a div into a command line. It allows keyboard input, sends commands to third party scripts and stores command history. It is designed to be extendable and as such only provides a few basic commands (clear, clearhistory, invert).
+Cmd turns a div into a kind of command line. It is designed to take a string input and return a plain text or HTML response by processing the input using Javascript or by using a remote server via a JSON API. It is designed to be extended and as such only provides a few basic commands (see below).
 
-Cmd is part of Chimpcom v6. [Version 5 is live](http://deviouschimp.co.uk/cmd). 6 will be put live soon and the rest of the code will become open source at some point.
-
-Cmd relies on jQuery...for now.
-
-Copyright 2014 Jacob Gully
+Cmd was built for [Chimpcom](http://deviouschimp.co.uk/cmd) ^([Github](https://github.com/mrchimp/chimpcom)).
 
 MIT License
 
 [Demo](http://deviouschimp.co.uk/misc/cmd)
 
+Features
+======
+
+* Tab completion for command names and parameters
+* JSON API
+* Text-to-speech output (optional, where available)
 
 
 Bower
 =====
 
-You can get Cmd on bower.
+You can get Cmd with bower.
 
     bower install cmd
 
-It's that easy.
-
 
 Usage
------
+=====
 
 Make an empty div.
 
@@ -45,21 +45,38 @@ For more examples see `example.html`.
 
 
 Options
--------
+====
 
 ### selector
 
 **Required.** *(string: '#cmd')* Selector for div to use as terminal.
 
 
-### busy_text
+### busy\_text
 
 *(string: 'Communicating...')* Text to display when input is disabled during external processor requests.
 
 
-### external_processor
+### external\_processor
 
-*(function: function(){})* See below.
+*(function: noop)*
+
+Parameters:
+
+ * *string* `input` The command given by the user.
+ * *object* `cmd` Reference to the Cmd object.
+
+To add extra commands to Cmd, pass a callback function in the options. This function should either return a *response object* (see below) or `undefined`.
+
+If `input` is `undefined`, the command line will remain disabled until `handleResponse()`` is called.
+
+The value that `external_processor` returns defines how Cmd reacts:
+
+  * `true` - Cmd will remain deactivated until your external script calls `handleResponse`.
+  * `false` - `unknown_cmd` will be printed to screen.
+  * `object` - Will be interpreted as a Cmd response object. See below for definition.
+  * `string` - Will be output to screen.
+  * Anything else - `unknown_cmd` will be printed to screen.
 
 
 ### filedrop_enabled
@@ -67,7 +84,7 @@ Options
 *(boolean: false)* If `true`, the terminal will allow files to be dropped on it and will post them to `file_upload_url`.
 
 
-### file_upload_url
+### file\_upload\_url
 
 *(string: 'uploadfile.php')* Used when `filedrop_enabled` is `true`. A URL to post to when files are dropped on the terminal.
 
@@ -77,7 +94,7 @@ Options
 *(string: 'cmd_history')* Command history is stored in Local Storage. Use different ids if using multiple terminals on a page. Or don't and they'll share history. It's up to you.
 
 
-### remote_cmd_list_url
+### remote\_cmd\_list\_url
 
 *(string: '')* A URL that provides a JSON representation of available remote commands that is used for *command name* tabcomplete. This is called once at boot time.
 
@@ -98,48 +115,25 @@ Options
 
 
 
-External Processor
-------------------
-
-*function*
-
-Parameters:
-
- * *string* `input` The command given by the user.
- * *object* `cmd` Reference to the Cmd object.
-
-To add extra commands to Cmd, pass a callback function in the options. This function should either return a *response object* (see below) or `undefined`.
-
-If `input` is `undefined`, the command line will remain disabled until `handleResponse()`` is called.
-
-The value that `external_processor` returns defines how Cmd reacts:
-
-  * `true` - Cmd will remain deactivated until your external script calls `handleResponse`.
-  * `false` - `unknown_cmd` will be printed to screen.
-  * `object` - Will be interpreted as a Cmd response object. See below for definition.
-  * `string` - Will be output to screen.
-  * Anything else - `unknown_cmd` will be printed to screen.
-
-
 
 Response Object
-===============
+============
 
-A response object can have the following parameters.
+The response object that is passed to `handleResponse` can have the following parameters.
 
- * cmd_in - *required* The input provided by the user.
- * cmd_out - *required* The response string.
+ * cmd\_in - *required* The input provided by the user.
+ * cmd\_out - *required* The response string.
  * redirect - URL to redirect browser to.
  * openWindow - URL to open in a new window.
  * log - String to output with `console.log()`.
- * hide_output - Mask cmd_in as asterisks when outputting.
+ * hide\_output - Mask cmd\_in as asterisks when outputting.
  * show_pass - Switch to password input.
- * cmd_fill - String to insert into input.
+ * cmd\_fill - String to insert into input.
 
 
 
 Methods
-=======
+======
 
 ### appendOutput
 
@@ -153,12 +147,12 @@ Same as calling the `clear` command. Removes all output. Clears the screen. How 
 
 ### handleResponse
 
-Params: (*object* res) - Called by `external_processor` to output a response. See above for `res` specification.
+Params: (*object* response) - Called by `external_processor` to output a response. See above for `response` specification.
 
 
 ### invert
 
-If `style` (see options) is `'dark'`, load `light_css` and vice versa.
+Toggle between light-on-dark and dar-on-light styles.
 
 
 ### setPrompt
@@ -184,7 +178,7 @@ The command history that is accessed with the up arrow is stored in the browser'
 
 ### invert
 
-Toggle between light and dark styles.
+Toggle between light-on-dark and dark-and-light styles.
 
 ### talk
 
