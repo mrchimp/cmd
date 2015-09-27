@@ -761,7 +761,7 @@ function CmdStack(id, max_size) {
             cmd_in: str
           },
           success: function (data) {
-            if (typeof data === 'string') {
+            if (data) {
               this.input.val(data);
             }
           }
