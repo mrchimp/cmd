@@ -26,8 +26,7 @@
       selector: '#cmd1',
       dark_css: 'dist/cmd_dark.min.css',
       light_css: 'dist/cmd_light.min.css',
-      history_id: 'interface1',
-      typewriter_time: 0
+      history_id: 'interface1'
     });
 
     var interface2 = new Cmd({
@@ -37,7 +36,6 @@
       history_id: 'interface2',
       tabcomplete_url: 'tabcomplete.json',
       remote_cmd_list_url: 'commands.json',
-      typewriter_time: 5,
       external_processor: function(input, cmd)  {
         if (input === 'test') {
           setTimeout(function() {
@@ -59,6 +57,21 @@
           };
         } else if (input === 'long') {
           return 'This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. This is a really long output. '
+        } else if (input === 'autofill') {
+          return '<span data-type="autofill" data-autofill="here is some text">click me</span>';
+        } else if (input === 'password') {
+          return {
+            cmd_in: input,
+            cmd_out: 'Type in a password. Type "reset" to return to normal.',
+            show_pass: true
+          };
+        } else if (input === 'reset') {
+          return {
+            cmd_in: input,
+            cmd_out: 'Back to normal',
+            show_pass: false,
+            hide_output: true
+          };
         }
       }
     });

@@ -219,7 +219,7 @@ function CmdStack(id, max_size) {
 
 /**
  * HTML5 Command Line Terminal
- * 
+ *
  * @author   Jake Gully (chimpytk@gmail.com)
  * @license  MIT License
  */
@@ -357,39 +357,9 @@ function CmdStack(id, max_size) {
   }
 
   /**
-   * Output text one letter at a time
-   */
-  Cmd.prototype.typewriter = function (elem, str) {
-    elem = elem.first()[0];
-
-    str = elem.innerHTML + str;
-
-    var i = elem.innerHTML.length,
-      isTag,
-      text;
-
-    var type = $.proxy(function () {
-        text = str.slice(0, ++i);
-        if (text === str) return;
-
-        elem.innerHTML = text;
-
-        var char = text.slice(-1);
-        if( char === '<' ) isTag = true;
-        if( char === '>' ) isTag = false;
-
-        if (isTag) return type();
-        console.log(this);
-        setTimeout(type, this.options.typewriter_time);
-    }, this);
-
-    type();
-  }
-
-  /**
-   * Takes the client's input and the server's output 
+   * Takes the client's input and the server's output
    * and displays them appropriately.
-   * 
+   *
    * @param   string  cmd_in      The command as entered by the user
    * @param   string  cmd_out     The server output to write to screen
    */
@@ -412,19 +382,12 @@ function CmdStack(id, max_size) {
       this.output.append('<br>');
     }
 
-    this.output.append('<span class="prompt">' + this.prompt_str + '</span> ' + 
-      '<span class="grey_text">' + cmd_in + '</span><br>')
-
-    if (this.options.typewriter_time > 0 && cmd_out.length < 200) {
-      this.typewriter(this.output, cmd_out + '<br>');
-    } else {
-      this.output.append(cmd_out);
-    }
-
+    this.output.append('<span class="prompt">' + this.prompt_str + '</span> ' +
+      '<span class="grey_text">' + cmd_in + '</span><br>' + cmd_out);
 
     if (this.options.talk) {
       this.speakOutput(cmd_out);
-    }      
+    }
 
     this.cmd_stack.reset();
 
@@ -432,6 +395,7 @@ function CmdStack(id, max_size) {
 
     this.enableInput();
     this.focusOnInput();
+    this.activateAutofills();
   }
 
   /**
@@ -549,7 +513,7 @@ function CmdStack(id, max_size) {
   }
 
 
-  
+
   // ====== Handlers ==============================
 
   /**
@@ -604,7 +568,7 @@ function CmdStack(id, max_size) {
         var result = this.options.external_processor(input_str, this);
 
         switch (typeof result) {
-          // If undefined, external handler should 
+          // If undefined, external handler should
           // call handleResponse when done
           case 'boolean':
             if (!result) {
@@ -644,7 +608,7 @@ function CmdStack(id, max_size) {
     }
 
     if (res.hide_output === true) {
-      res.cmd_in = new Array(cmd_in.length).join("*");
+      res.cmd_in = new Array(res.cmd_in.length + 1).join("*");
     }
 
     if (res.show_pass === true) {
@@ -658,8 +622,6 @@ function CmdStack(id, max_size) {
     if (res.cmd_fill !== '') {
       this.wrapper.children('.cmd-container').children('.cmd-in').first().val(res.cmd_fill);
     }
-
-    this.activateAutofills();
   }
 
   /**
@@ -791,10 +753,10 @@ function CmdStack(id, max_size) {
       }
     }
   }
-  
+
 
   // ====== Helpers ===============================
-  
+
   /**
    * Takes a user to a given url. Adds "http://" if necessary.
    */
@@ -817,7 +779,7 @@ function CmdStack(id, max_size) {
   }
 
   /**
-   * Give focus to the command input and 
+   * Give focus to the command input and
    * scroll to the bottom of the page
    */
   Cmd.prototype.focusOnInput = function() {
@@ -869,9 +831,13 @@ function CmdStack(id, max_size) {
    * will insert text into the input
    */
   Cmd.prototype.activateAutofills = function() {
-    this.wrapper.find('[data-type=autofill]').on('click', function () {
-      this.input.val($(this).data('autofill'));
-    });
+    var input = this.input;
+
+    this.wrapper
+      .find('[data-type=autofill]')
+      .on('click', function() {
+        input.val($(this).data('autofill'));
+      });
   }
 
   /**
@@ -894,7 +860,7 @@ function CmdStack(id, max_size) {
 
   /**
    * Speak output aloud using speech synthesis API
-   * 
+   *
    * @param {String} output Text to read
    */
   Cmd.prototype.speakOutput = function(output) {
