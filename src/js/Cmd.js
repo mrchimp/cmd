@@ -313,8 +313,8 @@
     var cmd_array = input_str.split(' ');
     var shown_input = input_str;
 
-    if (this.input.attr('password') === true) {
-      shown_input = new Array(res.cmd_in.length + 1).join("*");
+    if (this.input.attr('type') === 'password') {
+      shown_input = new Array(shown_input.length + 1).join("•");
     }
 
     this.displayInput(shown_input);
