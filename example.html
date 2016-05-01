@@ -40,7 +40,6 @@
         if (input === 'test') {
           setTimeout(function() {
             cmd.handleResponse({
-              cmd_in: input,
               cmd_out: 'Success!'
             });
           }, 1000);
@@ -52,7 +51,6 @@
           return 'This is normal text. This is <em>italic</em> text. This is <em>bold</em> text.';
         } else if (input === 'bar') {
           return {
-            cmd_in: input,
             cmd_out: 'Object style return.'
           };
         } else if (input === 'long') {
@@ -61,13 +59,20 @@
           return '<span data-type="autofill" data-autofill="here is some text">click me</span>';
         } else if (input === 'password') {
           return {
-            cmd_in: input,
-            cmd_out: 'Type in a password. Type "reset" to return to normal.',
+            cmd_out: 'Type in a password. Type "reset" to return to normal',
             show_pass: true
           };
+        } else if (input === 'password-async') {
+          setTimeout(function() {
+            cmd.handleResponse({
+              cmd_out: 'Type in a password. Type "reset" to return to normal.',
+              show_pass: true
+            });
+          }, 100);
+
+          return true;
         } else if (input === 'reset') {
           return {
-            cmd_in: input,
             cmd_out: 'Back to normal',
             show_pass: false,
             hide_output: true
