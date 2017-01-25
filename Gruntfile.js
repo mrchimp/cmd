@@ -1,17 +1,12 @@
 module.exports = function(grunt) {
 
-  var js_files = [
-    'bower_components/typewriter/jquery.typer.js',
-    'src/js/Polyfills.js',
-    'src/js/CmdStack.js',
-    'src/js/Cmd.js',
-  ];
-
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       dist: {
-        src: js_files,
+        //All files that exist within src/ and end in .js
+        src: ['src/**/*.js'],
+        // the location of the resulting JS file
         dest: 'dist/js/cmd.js'
       }
     },
@@ -53,7 +48,8 @@ module.exports = function(grunt) {
         }
       },
       dist: {
-        files: js_files,
+         //All files that exist within src/ and end in .js
+       files: ['src/**/*.js'],
         tasks: [
           'concat:dist',
           'uglify'
@@ -62,19 +58,30 @@ module.exports = function(grunt) {
           nospawn: true
         }
       }
+    },
+    copy: {
+      main: {
+        files: [
+          {expand: true, flatten: true, filter: 'isFile', src: ['dependencies/jquery/dist/**'], dest: 'dist/external/jquery/'},
+          {expand: true, flatten: true, filter: 'isFile', src: ['dependencies/jquery.typer/jquery.typer.js'], dest: 'dist/external/'},
+          {expand: true, src: ['example.html', 'commands.json', 'tabcomplete.json'], dest: 'dist/',
+            rename: function(dest, src) {
+              return dest + src.replace('example.html','index.html');
+            }
+          }
+        ]
+      }
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-less');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-focus');
+  // Load grunt tasks from NPM packages
+  require( "load-grunt-tasks" )( grunt );
 
   grunt.registerTask('default', [
     'concat',
     'uglify',
-    'less:dist'
+    'less:dist',
+    'copy'
   ]);
 
   grunt.registerTask('watch-all', [

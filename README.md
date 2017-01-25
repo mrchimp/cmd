@@ -18,6 +18,14 @@ Features
 * JSON API
 * Text-to-speech output (optional, where available)
 
+Install and run demo
+=====
+
+You can build and try Cmd using npm.
+
+    npm run build
+    npm run start
+
 
 Bower
 =====
