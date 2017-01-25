@@ -1,0 +1,3 @@
+[submodule "dependencies/jquery"]
+	path = dependencies/jquery
+	url = git://github.com/jquery/jquery.git
