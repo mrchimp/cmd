@@ -1,12 +1,13 @@
 module.exports = function(grunt) {
-
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       dist: {
-        //All files that exist within src/ and end in .js
-        src: ['src/**/*.js'],
-        // the location of the resulting JS file
+        src: [
+          'src/js/Polyfills.js',
+          'src/js/CmdStack.js',
+          'src/js/Cmd.js',
+        ],
         dest: 'dist/js/cmd.js'
       }
     },
