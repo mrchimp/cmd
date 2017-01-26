@@ -1,6 +1,6 @@
 [submodule "dependencies/jquery"]
 	path = dependencies/jquery
-	url = git://github.com/jquery/jquery.git
+	url = https://github.com/jquery/jquery.git
 [submodule "dependencies/jquery.typer"]
 	path = dependencies/jquery.typer
 	url = https://github.com/yckart/jquery.typer.js.git
