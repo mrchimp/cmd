@@ -5,11 +5,9 @@ HTML5 Command Line Terminal
 
 Cmd turns a div into a kind of command line. It is designed to take a string input and return a plain text or HTML response by processing the input using Javascript or by using a remote server via a JSON API. It is designed to be extended and as such only provides a few basic commands (see below).
 
-Cmd was built for [Chimpcom](http://deviouschimp.co.uk/cmd) ([Github](https://github.com/mrchimp/chimpcom)).
+Cmd was built for [Chimpcom](http://deviouschimp.co.uk/) ([Github](https://github.com/mrchimp/chimpcom)).
 
 MIT License
-
-[Demo](http://deviouschimp.co.uk/misc/cmd)
 
 Features
 ======
